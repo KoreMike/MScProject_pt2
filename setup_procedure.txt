@@ -1,0 +1,78 @@
+JAVA_HOME to /usr/lib/jvm/java-7-openjdk (note the removal of the trailing jre)
+ant in apache-nutch-1.9/
+
+1.  runtime/local/conf/nutch-site.xml:
+      <property>
+       <name>http.agent.name</name>
+       <value>Mike Hewitt Spider</value>
+      </property>
+
+2.  mkdir -p urls
+
+    cd urls
+
+    echo "http://eprints.ulster.ac.uk" > seed.txt
+
+3.  runtime/local/conf/regex-urlfilter.txt
+
+    +^http://([a-z0-9]*\.)*eprints.ulster.ac.uk/
+
+4. nutch-default.xml:
+
+	 <property>
+	  <name>generate.max.count</name>
+	  <value>100</value>
+	  <description>The maximum number of urls in a single
+	  fetchlist.  -1 if unlimited. The urls are counted according
+	  to the value of the parameter generator.count.mode.
+	  </description>
+	</property>
+
+5.  SOLR:
+    change schema.xml to example/solr/collection1/conf/schema.xml.org
+    copy   apache-nutch-1.9/runtime/local/conf/schema.xml
+    paste  example/solr/collection1/conf/schema.xml
+
+    edit SOLR schema.xml as at http://wiki.apache.org/nutch/NutchTutorial
+
+    solr-4.10.3/example:
+
+    java -jar start.jar
+
+6.  bin/nutch inject crawl/crawldb urls
+    bin/nutch generate crawl/crawldb crawl/segments
+
+    s1=`ls -d crawl/segments/2* | tail -1`
+    echo $s1
+
+    bin/nutch fetch $s1
+    bin/nutch parse $s1
+    bin/nutch updatedb crawl/crawldb $s1
+
+    bin/nutch generate crawl/crawldb crawl/segments -topN 1000
+    s2=`ls -d crawl/segments/2* | tail -1`
+    echo $s2
+
+    bin/nutch fetch $s2
+    bin/nutch parse $s2
+    bin/nutch updatedb crawl/crawldb $s2
+
+    bin/nutch fetch $s3
+    bin/nutch parse $s3
+    bin/nutch updatedb crawl/crawldb $s3
+
+    bin/nutch invertlinks crawl/linkdb -dir crawl/segments
+    bin/nutch dedup http://localhost:8983/solr
+    bin/nutch solrclean crawl/crawldb/ http://localhost:8983/solr
+
+    bin/nutch solrindex http://localhost:8983/solr/ crawl/crawldb -linkdb crawl/linkdb crawl/segments/
+
+OR
+
+7. May have to export JAVA_HOME first (http://stackoverflow.com/questions/25289173/nutch-1-7-java-home-not-set-error):
+
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre/
+bin/crawl urls/ TestCrawl/ http://localhost:8983/solr/ 2
+
+DO NOT USE THE CRAWL SCRIPT FROM NUTCH TUTORIAL AS IT WILL SAY INPUT PATH DOESN'T EXIST
+

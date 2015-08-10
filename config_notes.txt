@@ -1,0 +1,45 @@
+In nutch-default.xml:
+
+<property>
+  <name>generate.max.count</name>
+  <value>100</value>
+  <description>The maximum number of urls in a single
+  fetchlist.  -1 if unlimited. The urls are counted according
+  to the value of the parameter generator.count.mode.
+  </description>
+</property>
+
+In regex-urlfilter.txt:
+
+-^http://([a-z0-9]*\.)*eprints.ulster.ac.uk/([a-z]*)
++^http://([a-z0-9]*\.)*eprints.ulster.ac.uk/([0-9]{5})/
+
+Make sure 'content' is included in solr schema.xml
+
+Edit velocity settings in solrconfig.xml to match the fields used
+
+Have added the following to solrconfig.xml:
+
+<!-- This causes long startup times on big indexes, even when never used.  See SOLR-6679 -->
+<searchComponent name="suggest" class="solr.SuggestComponent">
+      <lst name="suggester">
+      <str name="name">mySuggester</str>
+      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+      <str name="suggestAnalyzerFieldType">text</str>
+      <str name="dictionaryImpl">DocumentDictionaryFactory</str>     <!-- org.apache.solr.spelling.suggest.HighFrequencyDictionaryFactory -->
+      <str name="field">anchor</str>
+      <str name="weightField">id</str>
+      <str name="buildOnCommit">true</str>
+    </lst>
+</searchComponent>
+
+<requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="suggest">true</str>
+    <str name="suggest.count">10</str>
+    <str name="suggest.dictionary">mySuggester</str>
+  </lst>
+  <arr name="components">
+    <str>suggest</str>
+  </arr>
+</requestHandler>
