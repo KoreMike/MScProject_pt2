@@ -35,6 +35,5 @@
 # skip URLs with slash-delimited segment that repeats 3+ times, to break loops
 -.*(/[^/]+)/[^/]+\1/[^/]+\1/
 
--^http://eprints.ulster.ac.uk/[a-z]*/*
-+^http://eprints.ulster.ac.uk/[0-9]{1,}/
-
+-^http://www.ulster.ac.uk/
++^http://([a-z0-9]*\.)*eprints.ulster.ac.uk/
