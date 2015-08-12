@@ -3,6 +3,6 @@
  *  as you type in the search form
  *#
 
-#foreach($t in $response.response.terms.name)
+#foreach($t in $response.response.terms.title)
   $t.key
 #end
